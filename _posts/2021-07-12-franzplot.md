@@ -32,16 +32,16 @@ The new version was a success: even though some bugs needed ironing, the final p
 
 ## Technical details
 Franzplot uses wgpu for both compute and visualization purposes. Every time the "Generate Scene" button is clicked, a few things happen:
-- first, the software checks that the graph does not contain any error nor cycles, and nodes are sorted according to their dependency
-- then, for each node, the memory requirements for its output are computed and a wgpu buffer gets allocated
-- finally, the expressions written by the user are turned into a compute shader that reads the input buffer and writes to the output one
+- the software checks that the graph does not contain any error nor cycles, and nodes are sorted according to their dependency
+- for each node, the memory requirements for its output are computed and a wgpu buffer gets allocated
+- each node equations are turned into a compute shader that reads from the input buffers and writes to the output one
 
 The whole process takes very little time, less then one second for a reasonably-sized node graph. In a sense, FranzPlot is "just" a compiler: it turns mathematical formulas into GLSL. Everything else is just some glue code with a super simple 3D scene visualization on top.
 
-When the user switches to the scene visualization all the shaders are run each frame, and this updates all the buffers that make up the meshes which are displayed to the user. The user can then change the value of a few defined global variables (stored in a uniform buffer) so that the scene can be updated in real time.
+When the user switches to the scene visualization all the shaders are run in the correct order, and this updates all the buffers that make up the displayed meshes. When the student changes the value of a few pre-defined global variables (stored in a uniform buffer) all the shaders are run again and the scene is updated in real time.
 
 ## Current state and future developments
 FranzPlot is currently closed source, since we are still trying to figure out what the next steps should be. It might become open source in the future, but there are many things that we need to consider first. Once a decision is made I hope we manage to spark some interest into this software and keep expanding its features. It would be nice to find some universities with similar classes that need an easy-to-use tool to help the students understand advanced geometry concepts.
 
 W.r.t. the actual code, there are still many things to do: even though the new code was written from scratch, I still feel like some technical debt crept in and there are a few changes I would like to make to the internals. Adding more features will be fun, and I would *love* to ditch GLSL completely and move to WGSL, since it has matured a lot and that would allow me to get rid of the huge shaderc dependency.
-Finally, even though I enjoyed working with imgui-rs & imnodes, I would like to find a rust-only solution for the UI. Right now I am investigating egui as a possible replacement for imgui, but this is kind of low-priority.
+Finally, even though I enjoyed working with imgui-rs & imnodes, I would like to find a rust-only solution for the UI. Right now I am investigating egui as a possible alternative, but this is kind of low-priority.
