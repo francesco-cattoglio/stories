@@ -23,6 +23,7 @@ Scene rendering, screenshot from the last version. Nothing fancy, this is just a
 If the first version was C++, why was the second version built in Rust?  All the people involved saw the potential and decided to turn this side project into a "real" software. However, to take things to the next level many things needed addressing. First and foremost, the amount of technical debt was rather high. Second, OpenGL has already been deprecated by Apple and we could not afford the risk of having a third of our students being unable to run the software in the future if Apple decided to remove support altogether. Third, we wanted to make the tool more powerful, flexible and available as a web app as well.
 
 To enhance the interactivity of the software we needed to be able to recompute *everything* at least 30 times per second, so the formula interpreter that we were using would not cut it anymore. After realizing that even a cheap laptop iGPU has a huge amount of flops, I decided to go for a compute-based solution, but how can one have compute shaders on a webpage? Enters WebGPU.
+
 I first read of wgpu around March 2020: it was clear that everything was still a work in progress, but I already knew the amazing work made by the gfx-rs team and I was confident that wgpu-rs would have been the right bet. More than a year later I firmly stand by that assertion.
 Up until that point I had very little Rust experience, but I was already in love with the language. During a meeting I explained my supervisors that it wouldn't have been an easy nor a quick job, but I was sure that the rust+wgpu combo would have been the right choice going forward: a modern language and a modern gpu API would have solved all our issues.
 
@@ -34,11 +35,13 @@ Franzplot uses wgpu for both compute and visualization purposes. Every time the 
 - first, the software checks that the graph does not contain any error nor cycles, and nodes are sorted according to their dependency
 - then, for each node, the memory requirements for its output are computed and a wgpu buffer gets allocated
 - finally, the expressions written by the user are turned into a compute shader that reads the input buffer and writes to the output one
+
 The whole process takes very little time, less then one second for a reasonably-sized node graph. In a sense, FranzPlot is "just" a compiler: it turns mathematical formulas into GLSL. Everything else is just some glue code with a super simple 3D scene visualization on top.
 
 When the user switches to the scene visualization all the shaders are run each frame, and this updates all the buffers that make up the meshes which are displayed to the user. The user can then change the value of a few defined global variables (stored in a uniform buffer) so that the scene can be updated in real time.
 
 ## Current state and future developments
 FranzPlot is currently closed source, since we are still trying to figure out what the next steps should be. It might become open source in the future, but there are many things that we need to consider first. Once a decision is made I hope we manage to spark some interest into this software and keep expanding its features. It would be nice to find some universities with similar classes that need an easy-to-use tool to help the students understand advanced geometry concepts.
+
 W.r.t. the actual code, there are still many things to do: even though the new code was written from scratch, I still feel like some technical debt crept in and there are a few changes I would like to make to the internals. Adding more features will be fun, and I would *love* to ditch GLSL completely and move to WGSL, since it has matured a lot and that would allow me to get rid of the huge shaderc dependency.
 Finally, even though I enjoyed working with imgui-rs & imnodes, I would like to find a rust-only solution for the UI. Right now I am investigating egui as a possible replacement for imgui, but this is kind of low-priority.
