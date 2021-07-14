@@ -40,11 +40,12 @@ Just as an example, imagine you have this graph in which node 2 depends on both 
 
 ![Node graph editing](https://github.com/francesco-cattoglio/stories/raw/main/assets/img/nodes_graph.png)
 
-This will get converted into a vector containing the following objects
+This will get converted into a vector containing the following objects, which I call "compute blocks"
 
 ![Node graph editing](https://github.com/francesco-cattoglio/stories/raw/main/assets/img/processed_nodes.png)
 
-Each one of those objects contains all the bindings to the output buffers to use as inputs and the compiled shader that needs to be run. Since we sorted based on dependency, we just need to iterate over the vector and queue the computation in wgpu. Please note that the shaders are usually unique, because they contain the equations that the student wrote.
+You can see from the above drawing that each block owns a unique compute shader (created from the student's equations) and its output buffer, but only has *bindings* to the buffers it uses as inputs. This is because a wgpu buffer has strict ownership rules. Thanks to bindings however we can create a handle for reading from a buffer whenever we like (to be precise, a compute block does not store individual bindings, but a bind group, and not just a shader, but a compute pipeline!).
+Since we sorted the compute blocks based on dependency, we just need to iterate over the vector and submit all the computations to a wgpu queue.
 
 The whole conversion process takes very little time, less then one second for a reasonably-sized node graph. In a sense, FranzPlot is "just" a compiler: it turns mathematical formulas into GLSL. Everything else is just some glue code with a super simple 3D scene visualization on top.
 
