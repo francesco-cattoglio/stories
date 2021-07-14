@@ -34,11 +34,19 @@ The new version was a success: even though some bugs needed ironing, the final p
 Franzplot uses wgpu for both compute and visualization purposes. Every time the "Generate Scene" button is clicked, a few things happen:
 - the software checks that the graph does not contain any error nor cycles, and nodes are sorted according to their dependency
 - for each node, the memory requirements for its output are computed and a wgpu buffer gets allocated
-- each node equations are turned into a compute shader that reads from the input buffers and writes to the output one
+- each node's equations are turned into a compute shader that reads from the input buffers and writes to the output one
 
-Just as an example, imagine you have this node graph, in which 
+Just as an example, imagine you have this graph in which node 2 depends on both 1 and 4, node 5 only depends on 4 and node 3 depends on both 2 and 5.
 
-The whole process takes very little time, less then one second for a reasonably-sized node graph. In a sense, FranzPlot is "just" a compiler: it turns mathematical formulas into GLSL. Everything else is just some glue code with a super simple 3D scene visualization on top.
+![Node graph editing](https://github.com/francesco-cattoglio/stories/raw/main/assets/img/nodes_graph.png)
+
+This will get converted into a vector containing the following objects
+
+![Node graph editing](https://github.com/francesco-cattoglio/stories/raw/main/assets/img/processed_nodes.png)
+
+Each one of those objects contains all the bindings to the output buffers to use as inputs and the compiled shader that needs to be run. Since we sorted based on dependency, we just need to iterate over the vector and queue the computation in wgpu. Please note that the shaders are usually unique, because they contain the equations that the student wrote.
+
+The whole conversion process takes very little time, less then one second for a reasonably-sized node graph. In a sense, FranzPlot is "just" a compiler: it turns mathematical formulas into GLSL. Everything else is just some glue code with a super simple 3D scene visualization on top.
 
 When the user switches to the scene visualization all the shaders are run in the correct order, and this updates all the buffers that make up the displayed meshes. When the student changes the value of a few pre-defined global variables (stored in a uniform buffer) all the shaders are run again and the scene is updated in real time.
 
